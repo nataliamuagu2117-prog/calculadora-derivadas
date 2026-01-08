@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Calculadora de Derivadas - CECyTEM</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f4e9f7;
+    padding:20px;
+}
+.container{
+    max-width:800px;
+    margin:auto;
+    background:white;
+    padding:30px;
+    border-radius:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,.2);
+}
+.tabs{
+    display:flex;
+    margin-bottom:20px;
+}
+.tabs button{
+    flex:1;
+    padding:15px;
+    border:none;
+    cursor:pointer;
+    font-weight:bold;
+    background:#e6c9f2;
+}
+.tabs button.active{
+    background:#c084fc;
+    color:white;
+}
+.section{
+    display:none;
+}
+.section.active{
+    display:block;
+}
+input, textarea, select{
+    width:100%;
+    padding:10px;
+    margin-top:8px;
+    margin-bottom:15px;
+}
+button{
+    padding:10px 15px;
+    background:#c084fc;
+    color:white;
+    border:none;
+    cursor:pointer;
+}
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+}
+table, th, td{
+    border:1px solid #aaa;
+}
+th, td{
+    padding:8px;
+    text-align:center;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h2 style="text-align:center"> Calculadora de Derivadas</h2>
+
+<div class="tabs">
+    <button class="active" onclick="mostrar('alumnos')">Alumnos</button>
+    <button onclick="mostrar('maestro')">Maestro</button>
+</div>
+
+<!-- ================= ALUMNOS ================= -->
+<div id="alumnos" class="section active">
+
+<h3>Calculadora de Derivadas</h3>
+
+<label>Nombre del alumno</label>
+<input type="text" id="nombreAlumno">
+
+<label>Función f(x)</label>
+<input type="text" id="funcion" placeholder="Ej: x^2 + 3*x">
+
+<label>Variable</label>
+<select id="variable">
+<option value="x">x</option>
+<option value="y">y</option>
+<option value="t">t</option>
+</select>
+
+<button onclick="calcularDerivada()">Calcular derivada</button>
+
+<div id="resultado" style="margin-top:15px;"></div>
+
+<h4>Responder actividad</h4>
+<textarea id="respuestaAlumno" placeholder="Escribe aquí tu respuesta"></textarea>
+<button onclick="enviarRespuesta()">Enviar respuesta</button>
+
+</div>
+
+<!-- ================= MAESTRO ================= -->
+<div id="maestro" class="section">
+
+<h3>Acceso Maestro</h3>
+<input type="password" id="codigoMaestro" placeholder="Código de acceso">
+<button onclick="validarCodigo()">Entrar</button>
+
+<div id="panelMaestro" style="display:none">
+
+<h4>Crear actividad</h4>
+<textarea id="actividad" placeholder="Escribe la actividad"></textarea>
+<button onclick="guardarActividad()">Guardar actividad</button>
+
+<h4>Resultados de alumnos</h4>
+<table>
+<thead>
+<tr>
+<th>Alumno</th>
+<th>Respuesta</th>
+</tr>
+</thead>
+<tbody id="tablaResultados"></tbody>
+</table>
+
+</div>
+</div>
+
+</div>
+
+<script>
+function mostrar(seccion){
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.getElementById(seccion).classList.add('active');
+
+    document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+    event.target.classList.add('active');
+}
+
+function calcularDerivada(){
+    const f = document.getElementById("funcion").value;
+    const v = document.getElementById("variable").value;
+    try{
+        const d = math.derivative(f, v).toString();
+        document.getElementById("resultado").innerHTML =
+        `<strong>Derivada:</strong> ${d}`;
+    }catch{
+        document.getElementById("resultado").innerHTML =
+        "Error en la función";
+    }
+}
+
+function enviarRespuesta(){
+    const nombre = document.getElementById("nombreAlumno").value;
+    const resp = document.getElementById("respuestaAlumno").value;
+
+    if(!nombre || !resp){
+        alert("Completa todos los campos");
+        return;
+    }
+
+    const datos = JSON.parse(localStorage.getItem("respuestas")) || [];
+    datos.push({nombre, resp});
+    localStorage.setItem("respuestas", JSON.stringify(datos));
+
+    alert("Respuesta enviada");
+    document.getElementById("respuestaAlumno").value="";
+}
+
+function validarCodigo(){
+    const codigo = document.getElementById("codigoMaestro").value;
+    if(codigo === "soyCECyTEM"){
+        document.getElementById("panelMaestro").style.display="block";
+        cargarResultados();
+    }else{
+        alert("Código incorrecto");
+    }
+}
+
+function guardarActividad(){
+    const act = document.getElementById("actividad").value;
+    localStorage.setItem("actividad", act);
+    alert("Actividad guardada");
+}
+
+function cargarResultados(){
+    const datos = JSON.parse(localStorage.getItem("respuestas")) || [];
+    const tabla = document.getElementById("tablaResultados");
+    tabla.innerHTML="";
+    datos.forEach(d=>{
+        tabla.innerHTML +=
+        `<tr><td>${d.nombre}</td><td>${d.resp}</td></tr>`;
+    });
+}
+</script>
+
+</body>
+</html>
